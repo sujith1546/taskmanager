@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Deadline Analytics</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --danger: #f72585;
+            --warning: #f8961e;
+            --success: #4cc9f0;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f5f7fa;
+            color: var(--text-color);
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+        .days-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .day-card {
+            background: #f0f4ff;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+        .day-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(67, 97, 238, 0.2);
+        }
+        .day-name {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        .task-count {
+            background: var(--primary);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: inline-block;
+        }
+        .recommendation {
+            padding: 15px;
+            border-left: 4px solid var(--primary);
+            background: #f8faff;
+            margin-bottom: 10px;
+            border-radius: 8px;
+        }
+        .recommendation.quiz {
+            border-left-color: #4cc9f0;
+        }
+        .recommendation.da {
+            border-left-color: #f8961e;
+        }
+        .priority-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background: #fff;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-calendar-alt"></i> Task Deadline Analytics</h1>
+        
+        <div class="card">
+            <h2><i class="fas fa-calendar-day"></i> Deadlines by Day</h2>
+            <div id="dayWiseDeadlines">
+                <div class="loading">Loading day-wise analysis...</div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2><i class="fas fa-chart-bar"></i> Task Deadline vs. Days Left</h2>
+            <div class="chart-container">
+                <canvas id="daysLeftChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2><i class="fas fa-robot"></i> Auto Recommendations</h2>
+            <div id="quizRecommendations">
+                <h3><i class="fas fa-question-circle"></i> Quiz Suggestions</h3>
+                <div class="loading">Analyzing quiz deadlines...</div>
+            </div>
+            <div id="daRecommendations">
+                <h3><i class="fas fa-laptop-code"></i> Digital Assignment Tips</h3>
+                <div class="loading">Analyzing DA deadlines...</div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2><i class="fas fa-exclamation-circle"></i> Priority Items</h2>
+            <div id="priorityTasks">
+                <div class="loading">Identifying priority tasks...</div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+        import { getFirestore, collection, query, where, orderBy, onSnapshot } 
+            from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAE-mEsxE1WNRiy4ANNTFmZ76GmQ2WEk8k",
+            authDomain: "taskmanagerapp-d38dc.firebaseapp.com",
+            projectId: "taskmanagerapp-d38dc",
+            storageBucket: "taskmanagerapp-d38dc.appspot.com",
+            messagingSenderId: "907829302110",
+            appId: "1:907829302110:web:02a5ee97157fd85390f5cf"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        document.addEventListener("DOMContentLoaded", () => {
+            loadTaskAnalytics();
+        });
+
+        function loadTaskAnalytics() {
+            const q = query(collection(db, "tasks"), orderBy("date", "asc"));
+            
+            onSnapshot(q, (snapshot) => {
+                const tasks = [];
+                snapshot.forEach((doc) => {
+                    tasks.push({ id: doc.id, ...doc.data() });
+                });
+                
+                analyzeDayWiseDeadlines(tasks);
+                generateDaysLeftChart(tasks);
+                generateRecommendations(tasks);
+                identifyPriorityTasks(tasks);
+            });
+        }
+
+        function analyzeDayWiseDeadlines(tasks) {
+            const dayCounts = {
+                Monday: 0, Tuesday: 0, Wednesday: 0, 
+                Thursday: 0, Friday: 0, Saturday: 0, Sunday: 0
+            };
+            
+            tasks.forEach(task => {
+                if (task.date) {
+                    const date = new Date(task.date);
+                    const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+                    dayCounts[dayName]++;
+                }
+            });
+            
+            let html = '<div class="days-container">';
+            for (const [day, count] of Object.entries(dayCounts)) {
+                html += `
+                    <div class="day-card">
+                        <div class="day-name">${day.substring(0, 3)}</div>
+                        <span class="task-count">${count}</span>
+                    </div>
+                `;
+            }
+            html += '</div>';
+            
+            document.getElementById('dayWiseDeadlines').innerHTML = html;
+            
+            // Create chart
+            createDayWiseChart(dayCounts);
+        }
+
+        function createDayWiseChart(dayCounts) {
+            const ctx = document.createElement('canvas');
+            ctx.style.marginTop = '20px';
+            ctx.style.maxHeight = '300px';
+            document.getElementById('dayWiseDeadlines').appendChild(ctx);
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(dayCounts),
+                    datasets: [{
+                        label: 'Deadlines per day',
+                        data: Object.values(dayCounts),
+                        backgroundColor: '#4361ee',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        function generateDaysLeftChart(tasks) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            // Filter out completed tasks and tasks without dates
+            const validTasks = tasks.filter(task => !task.completed && task.date);
+            
+            // Calculate days left for each task
+            const taskData = validTasks.map(task => {
+                const taskDate = new Date(task.date);
+                const daysLeft = Math.ceil((taskDate - today) / (1000 * 60 * 60 * 24));
+                return {
+                    title: task.title,
+                    daysLeft: daysLeft,
+                    type: task.type
+                };
+            });
+            
+            // Sort by days left (ascending)
+            taskData.sort((a, b) => a.daysLeft - b.daysLeft);
+            
+            // Prepare data for chart
+            const labels = taskData.map(task => task.title);
+            const data = taskData.map(task => task.daysLeft);
+            const backgroundColors = taskData.map(task => {
+                if (task.daysLeft <= 1) return '#f72585'; // Red for urgent
+                if (task.daysLeft <= 3) return '#f8961e'; // Orange for high priority
+                return '#4361ee'; // Blue for normal
+            });
+            
+            // Create the chart
+            const ctx = document.getElementById('daysLeftChart');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Days Left',
+                        data: data,
+                        backgroundColor: backgroundColors,
+                        borderColor: backgroundColors.map(color => color + 'dd'),
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Days Remaining'
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                autoSkip: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                afterLabel: function(context) {
+                                    const task = taskData[context.dataIndex];
+                                    return `Type: ${task.type}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function generateRecommendations(tasks) {
+            // Quiz recommendations
+            const quizTasks = tasks.filter(t => t.type === 'Quiz');
+            let quizHtml = '';
+            
+            if (quizTasks.length > 0) {
+                const upcomingQuiz = quizTasks.find(t => {
+                    const taskDate = new Date(t.date);
+                    const today = new Date();
+                    return taskDate >= today;
+                });
+                
+                if (upcomingQuiz) {
+                    const quizDate = new Date(upcomingQuiz.date);
+                    const daysLeft = Math.ceil((quizDate - new Date()) / (1000 * 60 * 60 * 24));
+                    
+                    quizHtml = `
+                        <div class="recommendation quiz">
+                            <h4>${upcomingQuiz.title}</h4>
+                            <p><i class="fas fa-calendar-day"></i> Due in ${daysLeft} days (${quizDate.toDateString()})</p>
+                            ${daysLeft <= 3 ? 
+                                '<p class="priority"><i class="fas fa-exclamation-triangle"></i> Prepare immediately!</p>' : 
+                                '<p>Schedule study sessions this week</p>'}
+                        </div>
+                    `;
+                }
+            }
+            document.getElementById('quizRecommendations').innerHTML = `
+                <h3><i class="fas fa-question-circle"></i> Quiz Suggestions</h3>
+                ${quizHtml || '<p>No upcoming quizzes found</p>'}
+            `;
+            
+            // Digital Assignment recommendations
+            const daTasks = tasks.filter(t => t.type === 'Digital Assignment');
+            let daHtml = '';
+            
+            if (daTasks.length > 0) {
+                const closestDA = daTasks.reduce((closest, task) => {
+                    const taskDate = new Date(task.date);
+                    const closestDate = closest ? new Date(closest.date) : null;
+                    const today = new Date();
+                    
+                    if (taskDate >= today && (!closestDate || taskDate < closestDate)) {
+                        return task;
+                    }
+                    return closest;
+                }, null);
+                
+                if (closestDA) {
+                    const daDate = new Date(closestDA.date);
+                    const daysLeft = Math.ceil((daDate - new Date()) / (1000 * 60 * 60 * 24));
+                    
+                    daHtml = `
+                        <div class="recommendation da">
+                            <h4>${closestDA.title}</h4>
+                            <p><i class="fas fa-calendar-day"></i> Due in ${daysLeft} days (${daDate.toDateString()})</p>
+                            ${daysLeft <= 2 ? 
+                                '<p class="priority"><i class="fas fa-exclamation-triangle"></i> Complete this ASAP!</p>' : 
+                                '<p>Break into smaller tasks and start working</p>'}
+                            ${daysLeft > 7 ? 
+                                '<p><i class="fas fa-lightbulb"></i> You have plenty of time - plan your work</p>' : ''}
+                        </div>
+                    `;
+                }
+            }
+            document.getElementById('daRecommendations').innerHTML = `
+                <h3><i class="fas fa-laptop-code"></i> Digital Assignment Tips</h3>
+                ${daHtml || '<p>No upcoming digital assignments</p>'}
+            `;
+        }
+
+        function identifyPriorityTasks(tasks) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const priorityTasks = tasks
+                .filter(task => {
+                    if (task.completed || !task.date) return false;
+                    const taskDate = new Date(task.date);
+                    const daysDiff = Math.ceil((taskDate - today) / (1000 * 60 * 60 * 24));
+                    return daysDiff <= 3;
+                })
+                .sort((a, b) => {
+                    return new Date(a.date) - new Date(b.date);
+                });
+            
+            let html = '';
+            if (priorityTasks.length > 0) {
+                priorityTasks.forEach(task => {
+                    const taskDate = new Date(task.date);
+                    const daysDiff = Math.ceil((taskDate - today) / (1000 * 60 * 60 * 24));
+                    
+                    html += `
+                        <div class="priority-item">
+                            <div>
+                                <strong>${task.title}</strong>
+                                <div>${task.type} • Due in ${daysDiff} day${daysDiff !== 1 ? 's' : ''}</div>
+                            </div>
+                            <div>
+                                ${daysDiff <= 1 ? '<span style="color: #f72585;">URGENT</span>' : 
+                                  daysDiff <= 3 ? '<span style="color: #f8961e;">High Priority</span>' : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                html = '<p>No priority tasks found for the next 3 days</p>';
+            }
+            
+            document.getElementById('priorityTasks').innerHTML = html;
+        }
+    </script>
+</body>
+</html>
