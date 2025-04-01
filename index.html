@@ -8,609 +8,50 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --primary: #4361ee;
-            --secondary: #3f37c9;
-            --success: #4cc9f0;
-            --warning: #f8961e;
-            --danger: #f72585;
-            --light: #f8f9fa;
-            --dark: #212529;
-            --bg-color: #f4f7fc;
-            --card-bg: white;
-            --text-color: #333;
-            --border-color: #ddd;
-            --shadow-color: rgba(0, 0, 0, 0.1);
-            --task-bg: #eef3fa;
-            --input-bg: white;
-        }
-
-        .dark-mode {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --text-color: #f0f0f0;
-            --border-color: #333;
-            --shadow-color: rgba(0, 0, 0, 0.3);
-            --task-bg: #2d2d2d;
-            --input-bg: #2d2d2d;
-        }
-
-        * {
-            margin: 0; 
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-            transition: background-color 0.3s, color 0.3s;
-        }
-        
-        body {
-            background: var(--bg-color);
-            color: var(--text-color);
-            text-align: center;
-            padding: 40px;
-            position: relative;
-            min-height: 100vh;
-        }
-        
-        .container {
-            max-width: 650px;
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 20px var(--shadow-color);
-            margin: 0 auto;
-            position: relative;
-        }
-        
-        h1 {
-            font-weight: 600;
-            margin-bottom: 25px;
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        
-        .theme-toggle {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--primary);
-            color: white;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-        }
-        
-        .input-section {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 25px;
-            position: relative;
-        }
-        
-        input, select {
-            padding: 12px 15px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            width: 100%;
-            font-size: 16px;
-            background: var(--input-bg);
-            color: var(--text-color);
-        }
-        
-        input:focus, select:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
-        }
-        
-        .input-section input[type="date"] {
-            grid-column: span 2;
-        }
-        
-        button {
-            padding: 12px 20px;
-            border: none;
-            cursor: pointer;
-            background: var(--primary);
-            color: white;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        
-        button:hover {
-            background: var(--secondary);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
-        }
-        
-        .task-list {
-            list-style: none;
-            padding: 0;
-            margin-top: 25px;
-            min-height: 100px;
-        }
-        
-        .task-item {
-            background: var(--task-bg);
-            padding: 18px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            animation: fadeIn 0.3s ease-out;
-            border-left: 5px solid;
-            box-shadow: 0 3px 10px var(--shadow-color);
-        }
-        
-        .task-item.overdue {
-            border-left-color: #c62828;
-        }
-        
-        .task-item.due-today {
-            border-left-color: #f57f17;
-        }
-        
-        .task-item.due-soon {
-            border-left-color: #2e7d32;
-        }
-        
-        .task-item.upcoming {
-            border-left-color: #1565c0;
-        }
-        
-        .task-item.completed {
-            border-left-color: #616161;
-            opacity: 0.8;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .task-details {
-            flex-grow: 1;
-            text-align: left;
-        }
-        
-        .task-details strong {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 18px;
-            color: var(--text-color);
-        }
-        
-        .task-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            align-items: center;
-        }
-        
-        .task-type {
-            font-size: 0.85em;
-            padding: 5px 12px;
-            border-radius: 15px;
-            background: #e3f2fd;
-            color: #1565c0;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        .dark-mode .task-type {
-            background: rgba(25, 118, 210, 0.2);
-        }
-        
-        .task-type.quiz {
-            background: #e8f5e9;
-            color: #2e7d32;
-        }
-        
-        .dark-mode .task-type.quiz {
-            background: rgba(46, 125, 50, 0.2);
-        }
-        
-        .task-type.digital-assignment {
-            background: #fff8e1;
-            color: #f57f17;
-        }
-        
-        .dark-mode .task-type.digital-assignment {
-            background: rgba(245, 127, 23, 0.2);
-        }
-        
-        .task-type.other {
-            background: #f3e5f5;
-            color: #7b1fa2;
-        }
-        
-        .dark-mode .task-type.other {
-            background: rgba(123, 31, 162, 0.2);
-        }
-        
-        .task-date {
-            font-size: 0.9em;
-            color: var(--text-color);
-            opacity: 0.8;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        .status {
-            font-size: 0.85em;
-            padding: 5px 12px;
-            border-radius: 15px;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        .status.overdue { background: #ffebee; color: #c62828; }
-        .status.due-today { background: #fff8e1; color: #f57f17; }
-        .status.due-soon { background: #e8f5e9; color: #2e7d32; }
-        .status.upcoming { background: #e3f2fd; color: #1565c0; }
-        .status.completed { background: #f5f5f5; color: #616161; }
-        
-        .dark-mode .status.overdue { background: rgba(198, 40, 40, 0.2); }
-        .dark-mode .status.due-today { background: rgba(245, 127, 23, 0.2); }
-        .dark-mode .status.due-soon { background: rgba(46, 125, 50, 0.2); }
-        .dark-mode .status.upcoming { background: rgba(21, 101, 192, 0.2); }
-        .dark-mode .status.completed { background: rgba(97, 97, 97, 0.2); }
-        
-        .actions {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .actions button {
-            width: 40px;
-            height: 40px;
-            padding: 0;
-            border-radius: 50%;
-            font-size: 16px;
-        }
-        
-        .complete-btn {
-            background: rgba(40, 167, 69, 0.1);
-            color: #28a745;
-        }
-        
-        .complete-btn:hover {
-            background: #28a745;
-            color: white;
-        }
-        
-        .edit-btn {
-            background: rgba(13, 110, 253, 0.1);
-            color: #0d6efd;
-        }
-        
-        .edit-btn:hover {
-            background: #0d6efd;
-            color: white;
-        }
-        
-        .delete-btn {
-            background: rgba(220, 53, 69, 0.1);
-            color: #dc3545;
-        }
-        
-        .delete-btn:hover {
-            background: #dc3545;
-            color: white;
-        }
-        
-        .cancel-btn {
-            background: #6c757d;
-        }
-        
-        .cancel-btn:hover {
-            background: #5a6268;
-        }
-        
-        .loading-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 40px;
-        }
-        
-        .loading-spinner {
-            width: 60px;
-            height: 60px;
-            border: 6px solid rgba(67, 97, 238, 0.1);
-            border-top: 6px solid var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .empty-state {
-            padding: 40px;
-            color: var(--text-color);
-            opacity: 0.7;
-            text-align: center;
-        }
-        
-        .empty-state i {
-            font-size: 2.5rem;
-            margin-bottom: 15px;
-            color: var(--primary);
-        }
-        
-        .delete-all-container {
-            text-align: center;
-            margin-top: 25px;
-            padding-top: 25px;
-            border-top: 1px solid var(--border-color);
-        }
-        
-        .delete-all-btn {
-            background: #dc3545;
-            padding: 12px 25px;
-        }
-        
-        .delete-all-btn:hover {
-            background: #c82333;
-        }
-        
-        .delete-all-btn:disabled {
-            background: #6c757d;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .notification {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            padding: 18px 25px;
-            border-radius: 10px;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            animation: slideIn 0.3s ease-out;
-            z-index: 1000;
-            max-width: 350px;
-        }
-        
-        .notification.success {
-            background: linear-gradient(135deg, #28a745, #218838);
-        }
-        
-        .notification.error {
-            background: linear-gradient(135deg, #dc3545, #c82333);
-        }
-        
-        .notification.warning {
-            background: linear-gradient(135deg, #fd7e14, #e36209);
-        }
-        
-        .notification button {
-            background: transparent;
-            color: white;
-            border: none;
-            font-size: 22px;
-            padding: 0;
-            width: 28px;
-            height: 28px;
-            opacity: 0.8;
-        }
-        
-        .notification button:hover {
-            opacity: 1;
-        }
-        
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        
-        @media (max-width: 768px) {
-            body {
-                padding: 20px;
-            }
-            
-            .container {
-                padding: 20px;
-                max-width: 100%;
-            }
-            
-            .input-section {
-                grid-template-columns: 1fr;
-            }
-            
-            .input-section input[type="date"] {
-                grid-column: span 1;
-            }
-            
-            .task-item {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
-            }
-            
-            .actions {
-                align-self: flex-end;
-            }
-            
-            .task-meta {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 8px;
-            }
-        }
-        
-        /* Floating action button */
-        .fab-container {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            z-index: 1000;
-        }
-        
-        .fab {
-            width: 60px;
-            height: 60px;
-            background-color: var(--primary);
-            border-radius: 50%;
-            box-shadow: 0 4px 8px var(--shadow-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            z-index: 1001;
-        }
-        
-        .fab i {
-            font-size: 24px;
-            color: white;
-            transition: transform 0.3s ease;
-        }
-        
-        .fab.active i {
-            transform: rotate(45deg);
-        }
-        
-        .fab-menu {
-            position: absolute;
-            bottom: 70px;
-            right: 0;
-            display: flex;
-            flex-direction: column-reverse;
-            align-items: center;
-            gap: 15px;
-            opacity: 0;
-            pointer-events: none;
-            transition: all 0.3s ease;
-            z-index: 1000;
-        }
-        
-        .fab-menu.active {
-            opacity: 1;
-            pointer-events: auto;
-            bottom: 80px;
-        }
-        
-        .menu-item {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background-color: var(--primary);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 4px 8px var(--shadow-color);
-            cursor: pointer;
-            transform: translateY(20px);
-            opacity: 0;
-            transition: all 0.3s ease;
-            text-decoration: none;
-        }
-        
-        .menu-item i {
-            font-size: 20px;
-            color: white;
-        }
-        
-        .fab-menu.active .menu-item {
-            transform: translateY(0);
-            opacity: 1;
-        }
-        
-        .fab-menu.active .menu-item:nth-child(1) {
-            transition-delay: 0.1s;
-        }
-        
-        .fab-menu.active .menu-item:nth-child(2) {
-            transition-delay: 0.2s;
-        }
-        
-        .fab-menu.active .menu-item:nth-child(3) {
-            transition-delay: 0.3s;
-        }
-        
-        .fab-menu.active .menu-item:nth-child(4) {
-            transition-delay: 0.4s;
-        }
-        
-        .menu-item:hover {
-            background-color: var(--secondary);
-            transform: scale(1.1) !important;
-        }
-        
-        .tooltip {
-            position: absolute;
-            right: 70px;
-            background-color: var(--dark);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 12px;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s;
-            white-space: nowrap;
-        }
-        
-        .menu-item:hover .tooltip {
-            opacity: 1;
-        }
-    </style>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <h1><i class="fas fa-tasks"></i> Task Manager</h1>
-        <div class="input-section">
-            <input type="text" id="taskInput" placeholder="Task Name..." required>
+   <div class="container">
+    <h1><i class="fas fa-tasks"></i> Task Manager</h1>
+    <button class="theme-toggle" id="themeToggle">
+        <i class="fas fa-moon"></i>
+    </button>
+    
+    <!-- Improved Input Section -->
+    <div class="input-section">
+        <div class="input-group">
+            <label for="taskInput"><i class="fas fa-pencil-alt"></i> Task Name</label>
+            <input type="text" id="taskInput" placeholder="Enter task name..." required>
+        </div>
+        
+        <div class="input-group">
+            <label for="taskType"><i class="fas fa-tag"></i> Task Type</label>
             <select id="taskType" required>
-                <option value="" disabled selected>Select Type</option>
+                <option value="" disabled selected>Select task type</option>
                 <option value="Quiz">Quiz</option>
                 <option value="Digital Assignment">Digital Assignment</option>
                 <option value="Other">Other</option>
             </select>
+        </div>
+        
+        <div class="input-group">
+            <label for="taskDate"><i class="fas fa-calendar-day"></i> Due Date</label>
             <input type="date" id="taskDate" required>
-            <button class="add-btn" onclick="addTask()">
-                <i class="fas fa-plus"></i> Add Task
-            </button>
         </div>
-        <ul class="task-list" id="taskList"></ul>
-        <div class="delete-all-container" id="deleteAllContainer" style="display: none;">
-            <button class="delete-all-btn" id="deleteAllBtn" onclick="deleteAllTasks()">
-                <i class="fas fa-trash-alt"></i> Delete All Tasks
-            </button>
-        </div>
+        
+        <button class="add-btn" onclick="addTask()">
+            <i class="fas fa-plus-circle"></i> Add Task
+        </button>
     </div>
+    
+    <ul class="task-list" id="taskList"></ul>
+    <div class="delete-all-container" id="deleteAllContainer" style="display: none;">
+        <button class="delete-all-btn" id="deleteAllBtn" onclick="deleteAllTasks()">
+            <i class="fas fa-trash-alt"></i> Delete All Tasks
+        </button>
+    </div>
+</div>
     
     <!-- Floating Action Button with Menu -->
     <div class="fab-container">
@@ -625,12 +66,12 @@
             </a>
             <a href="index3.html" class="menu-item">
                 <i class="fas fa-tasks"></i>
-                <span class="tooltip">ultimate task manager</span>
+                <span class="tooltip">Ultimate Task Manager</span>
             </a>
-            <a href="index4.html" class="menu-item">
+            <div class="menu-item" id="darkModeToggle">
                 <i class="fas fa-moon"></i>
                 <span class="tooltip">Toggle Theme</span>
-            </a>
+            </div>
         </div>
         <div class="fab">
             <i class="fas fa-plus"></i>
@@ -687,6 +128,18 @@
                 }
             });
             
+            // Theme toggle button in header
+            document.getElementById('themeToggle').addEventListener('click', function() {
+                toggleDarkMode();
+            });
+            
+            // Theme toggle in FAB menu
+            document.getElementById('darkModeToggle').addEventListener('click', function() {
+                toggleDarkMode();
+                fab.classList.remove('active');
+                fabMenu.classList.remove('active');
+            });
+            
             window.addEventListener('beforeunload', () => {
                 if (unsubscribe) unsubscribe();
             });
@@ -696,8 +149,16 @@
             darkMode = !darkMode;
             localStorage.setItem('darkMode', darkMode);
             document.body.classList.toggle('dark-mode');
-            document.querySelector('.fab-menu .menu-item:nth-child(4) i').className = darkMode ? 'fas fa-sun' : 'fas fa-moon';
-            document.querySelector('.fab-menu .menu-item:nth-child(4) .tooltip').textContent = darkMode ? 'Light Mode' : 'Dark Mode';
+            
+            // Update icons
+            const icon = darkMode ? 'fa-sun' : 'fa-moon';
+            const tooltip = darkMode ? 'Light Mode' : 'Dark Mode';
+            
+            document.getElementById('themeToggle').innerHTML = `<i class="fas ${icon}"></i>`;
+            document.getElementById('darkModeToggle').innerHTML = `
+                <i class="fas ${icon}"></i>
+                <span class="tooltip">${tooltip}</span>
+            `;
         }
 
         function showLoading() {
@@ -973,5 +434,146 @@
             }
         };
     </script>
+    <!-- Voice Control Interface -->
+<div id="voice-control" style="position:fixed;bottom:20px;left:20px;z-index:1000;">
+    <button id="voice-btn" style="width:60px;height:60px;border-radius:50%;background:#4361ee;color:white;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:24px;">
+      <i class="fas fa-microphone"></i>
+    </button>
+    <div id="voice-status" style="margin-top:10px;padding:8px;border-radius:5px;background:white;display:none;"></div>
+  </div>
+  
+  <script>
+  // Voice Recognition
+  const voiceBtn = document.getElementById('voice-btn');
+  const voiceStatus = document.getElementById('voice-status');
+  
+  // Check if browser supports speech recognition
+  if ('webkitSpeechRecognition' in window) {
+    const recognition = new webkitSpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    
+    voiceBtn.onclick = () => {
+      recognition.start();
+      voiceBtn.innerHTML = '<i class="fas fa-microphone-slash"></i>';
+      voiceStatus.textContent = "Listening...";
+      voiceStatus.style.display = 'block';
+      voiceStatus.style.background = '#fff3cd';
+    };
+    
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      voiceStatus.textContent = `Heard: "${transcript}"`;
+      voiceStatus.style.background = '#d4edda';
+      
+      processVoiceCommand(transcript);
+    };
+    
+    recognition.onerror = (event) => {
+      voiceStatus.textContent = `Error: ${event.error}`;
+      voiceStatus.style.background = '#f8d7da';
+      voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+    };
+    
+    recognition.onend = () => {
+      voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+      setTimeout(() => voiceStatus.style.display = 'none', 3000);
+    };
+  } else {
+    voiceBtn.onclick = () => {
+      voiceStatus.textContent = "Voice control not supported in your browser";
+      voiceStatus.style.display = 'block';
+      voiceStatus.style.background = '#f8d7da';
+      setTimeout(() => voiceStatus.style.display = 'none', 3000);
+    };
+  }
+  
+  // Process voice commands
+  function processVoiceCommand(command) {
+    // Parse the command
+    const addRegex = /(add|create|new)\s+(.+?)\s+(due|for|on|at)\s+(.+)/i;
+    const match = command.match(addRegex);
+    
+    if (match) {
+      const taskName = match[2].trim();
+      const dueInfo = match[4].trim();
+      
+      // Convert natural language date to actual date
+      const dueDate = parseNaturalDate(dueInfo);
+      
+      if (dueDate) {
+        // Auto-fill the form
+        document.getElementById('taskInput').value = taskName;
+        document.getElementById('taskDate').value = dueDate;
+        
+        // Try to auto-detect task type
+        if (taskName.toLowerCase().includes('quiz')) {
+          document.getElementById('taskType').value = 'Quiz';
+        } else if (taskName.toLowerCase().includes('assignment')) {
+          document.getElementById('taskType').value = 'Digital Assignment';
+        }
+        
+        showNotification(`Ready to add: "${taskName}" due ${dueInfo}`);
+      } else {
+        showNotification(`Couldn't understand the due date: "${dueInfo}"`, 'error');
+      }
+    } else {
+      showNotification(`Please say something like "Add math assignment due tomorrow"`, 'warning');
+    }
+  }
+  
+  // Helper function to convert natural language to dates
+  function parseNaturalDate(text) {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const nextWeek = new Date(today);
+    nextWeek.setDate(nextWeek.getDate() + 7);
+    
+    const days = {
+      'today': today,
+      'tomorrow': tomorrow,
+      'next week': nextWeek,
+      'monday': getNextWeekday(1),
+      'tuesday': getNextWeekday(2),
+      'wednesday': getNextWeekday(3),
+      'thursday': getNextWeekday(4),
+      'friday': getNextWeekday(5),
+      'saturday': getNextWeekday(6),
+      'sunday': getNextWeekday(0)
+    };
+    
+    // Check for simple day names
+    const lowerText = text.toLowerCase();
+    for (const [day, date] of Object.entries(days)) {
+      if (lowerText.includes(day)) {
+        return formatDate(date);
+      }
+    }
+    
+    // Try to parse more complex dates (like "June 5th")
+    try {
+      const parsedDate = new Date(text);
+      if (!isNaN(parsedDate.getTime())) {
+        return formatDate(parsedDate);
+      }
+    } catch (e) {
+      return null;
+    }
+    
+    return null;
+  }
+  
+  function getNextWeekday(dayIndex) {
+    const date = new Date();
+    date.setDate(date.getDate() + ((dayIndex - date.getDay() + 7) % 7));
+    return date;
+  }
+  
+  function formatDate(date) {
+    return date.toISOString().split('T')[0];
+  }
+  </script>
 </body>
 </html>
